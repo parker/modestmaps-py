@@ -45,12 +45,16 @@ class IMapProvider:
 class TemplatedMercatorProvider(IMapProvider):
     """ Convert URI templates into tile URLs, using a tileUrlTemplate identical to:
         http://code.google.com/apis/maps/documentation/overlays.html#Custom_Map_Types
+        
+        By passing in "tms" as the scheme, you can render tiles whose coordinates start (0, 0) in the lower left and not the top-left
+        http://wiki.openstreetmap.org/wiki/GIS_for_Dummies_(written_by_a_dummy)#TMS_.28Tile_Map_Service.29
+        http://mapbox.com/wax/
     """
-    def __init__(self, template):
+    def __init__(self, template, scheme="xyz"):
         # the spherical mercator world tile covers (-π, -π) to (π, π)
         t = deriveTransformation(-pi, pi, 0, 0, pi, pi, 1, 0, -pi, -pi, 0, 1)
         self.projection = MercatorProjection(0, t)
-        
+        self.scheme = scheme
         self.templates = []
         
         while template:
@@ -58,6 +62,8 @@ class TemplatedMercatorProvider(IMapProvider):
             first = match.group(1)
             
             if match:
+                # normalize {x}{y}{z} to {X}{Y}{Z}
+                first = re.sub("{[xyz]}", lambda mo: mo.group(0).upper(), first)
                 self.templates.append(first)
                 template = template[len(first):].lstrip(',')
             else:
@@ -71,4 +77,6 @@ class TemplatedMercatorProvider(IMapProvider):
 
     def getTileUrls(self, coordinate):
         x, y, z = str(int(coordinate.column)), str(int(coordinate.row)), str(int(coordinate.zoom))
-        return [t.replace('{X}', x).replace('{Y}', y).replace('{Z}', z) for t in self.templates]
+        if self.scheme == "tms":
+            y = str(pow(2, int(coordinate.zoom)) - int(coordinate.row) - 1)
+        return [t.replace('{X}', x).replace('{Y}', y).replace('{Z}', z) for t in self.templates]        

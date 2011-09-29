@@ -48,6 +48,10 @@ parser.add_option('-p', '--provider', dest='provider',
                   help='Map Provider, one of ' + ', '.join(ModestMaps.builtinProviders.keys()) + ' or URL template like "http://example.com/{Z}/{X}/{Y}.png".',
                   action='store')
 
+parser.add_option('-s', '--scheme', dest='scheme',
+                help='The scheme for the TemplatedMercatorProvider. one of "xyz" (default) or "tms"',
+                action='store', choices= ['xyz', 'tms'], default="xyz")
+
 parser.add_option('-k', '--apikey', dest='apikey',
                   help='API key for map providers that need one, e.g. CloudMade', type='str',
                   action='store')
@@ -73,7 +77,7 @@ if __name__ == '__main__':
 
                 provider = ModestMaps.builtinProviders[options.provider](options.apikey)
             elif options.provider.startswith('http://'):
-                provider = ModestMaps.Providers.TemplatedMercatorProvider(options.provider)
+                provider = ModestMaps.Providers.TemplatedMercatorProvider(options.provider, scheme=options.scheme)
             else:
                 provider = ModestMaps.builtinProviders[options.provider]()
         except KeyError:
