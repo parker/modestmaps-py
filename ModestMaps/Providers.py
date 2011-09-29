@@ -78,5 +78,5 @@ class TemplatedMercatorProvider(IMapProvider):
     def getTileUrls(self, coordinate):
         x, y, z = str(int(coordinate.column)), str(int(coordinate.row)), str(int(coordinate.zoom))
         if self.scheme == "tms":
-            y = str(pow(2, int(coordinate.zoom)) - int(coordinate.row) - 1)
+            y = str(int(pow(2, int(coordinate.zoom)) - int(coordinate.row) - 1))
         return [t.replace('{X}', x).replace('{Y}', y).replace('{Z}', z) for t in self.templates]        
